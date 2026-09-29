@@ -101,6 +101,7 @@
                     },
 					{
 						name: "Bypass AppUser check",
+                        danger: "Required for most users",
 						patches: [
                             {offset: 0x89075, off: [0x75], on: [0xEB]}
 						],
@@ -236,6 +237,7 @@
                     },
 					{
 						name: "Bypass AppUser check",
+                        danger: "Required for most users",
 						patches: [
                             {offset: 0x890C5, off: [0x75], on: [0xEB]}
 						],
