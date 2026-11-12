@@ -64,6 +64,30 @@
                         ]
                     },
                     {
+                        name: "Front L/R only for stereo output (experimental)",
+                        tooltip: "When the six-channel cabinet mix is sent to stereo, play the front left and right channels directly. Audio routed only to other cabinet channels is omitted.",
+                        requireMatch: true,
+                        patches: [
+                            {
+                                // Match the downmix call and surrounding instructions in the WASAPI renderer.
+                                offset: 0xF360D3,
+                                off: [0x8D, 0x45, 0xDC, 0x50, 0xE8, 0x73, 0xF2, 0xFF, 0xFF, 0x8A, 0x43, 0x07, 0x83, 0xC4, 0x10],
+                                on:  [0x8D, 0x45, 0xDC, 0x50, 0xE8, 0xD6, 0x00, 0x00, 0x00, 0x8A, 0x43, 0x07, 0x83, 0xC4, 0x10],
+                            },
+                            {
+                                offset: 0xF361B2,
+                                off: Array(20).fill(0xCC),
+                                on: [
+                                    // Layout IDs 4 -> 1 mean six channels -> stereo. Leave front L/R intact.
+                                    0x83, 0x7C, 0x24, 0x0C, 0x04, 0x75, 0x08,
+                                    0x83, 0x7C, 0x24, 0x10, 0x01, 0x75, 0x01, 0xC3,
+                                    // For other layouts, jump to the original downmix routine.
+                                    0xE9, 0x89, 0xF1, 0xFF, 0xFF,
+                                ],
+                            },
+                        ]
+                    },
+                    {
                         name: "Disable song select timer",
                         patches: [
                             {offset: 0x3D7210, off: [0x32, 0xC0], on: [0xB0, 0x01]}
@@ -230,6 +254,7 @@
         <p>For a silent stereo USB DAC, start with <strong>Force 2 channel audio output</strong> by itself. It keeps the game's original 48 kHz, 24-bit PCM in a 32-bit container.</p>
         <p>If exclusive playback is still silent, also try <strong>16-bit PCM for WASAPI exclusive mode</strong>. This requires the DAC to accept 48 kHz 16-bit PCM in exclusive mode.</p>
         <p>If 16-bit stereo works but loud passages distort, try <strong>Stereo PCM16 headroom</strong>. The whole mix will be quieter. Compare the same passage on the same device.</p>
+        <p>If that helps only a little, try <strong>Front L/R only for stereo output</strong> with headroom unchecked. Listen for both distortion and any missing game sounds.</p>
     </details>
 </body>
 
