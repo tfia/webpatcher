@@ -38,6 +38,32 @@
                         ]
                     },
                     {
+                        name: "Stereo PCM16 headroom (−8 dB, experimental)",
+                        tooltip: "Use with Force 2 channel audio output and 16-bit PCM for WASAPI exclusive mode. Lowers stereo PCM16 levels before they can clip at the output, which also reduces overall volume.",
+                        requireMatch: true,
+                        patches: [
+                            // Route only the WASAPI PCM16 call to the entry that can apply attenuation.
+                            {offset: 0xF35A53, off: [0xE8, 0xA4, 0x65, 0x13, 0xFF], on: [0xE8, 0xE0, 0x88, 0x04, 0x00]},
+                            {offset: 0xF7E273, off: [0x55, 0x8B, 0xEC, 0x51, 0x8B, 0x45, 0x1C], on: [0xE9, 0xB9, 0x00, 0x00, 0x00, 0x90, 0x90]},
+                            // Multiply by the scale chosen at entry, before converting to an integer.
+                            {offset: 0xF7E2CA, off: [0xF3, 0x0F, 0x59, 0x05, 0xEC, 0x2F, 0x9C, 0x01], on: [0xF3, 0x0F, 0x59, 0xC1, 0x90, 0x90, 0x90, 0x90]},
+                            {
+                                offset: 0xF7E331,
+                                off: Array(40).fill(0xCC),
+                                on: [
+                                    // Standard converter entry, scale = 32768.0.
+                                    0xB8, 0x00, 0x00, 0x00, 0x47, 0xEB, 0x11,
+                                    // WASAPI entry. If output has two channels, scale = 32768 * 10^(-8/20).
+                                    0xB8, 0x00, 0x00, 0x00, 0x47, 0x83, 0x7C, 0x24, 0x10, 0x02,
+                                    0x75, 0x05, 0xB8, 0xB4, 0xD4, 0x4B, 0x46,
+                                    // Keep the scale in XMM1, replay the prologue and resume the converter.
+                                    0x66, 0x0F, 0x6E, 0xC8, 0x55, 0x89, 0xE5, 0x51, 0x8B, 0x45, 0x1C,
+                                    0xE9, 0x21, 0xFF, 0xFF, 0xFF,
+                                ],
+                            },
+                        ]
+                    },
+                    {
                         name: "Disable song select timer",
                         patches: [
                             {offset: 0x3D7210, off: [0x32, 0xC0], on: [0xB0, 0x01]}
@@ -203,6 +229,7 @@
         <summary>Audio troubleshooting for MATE 2.50</summary>
         <p>For a silent stereo USB DAC, start with <strong>Force 2 channel audio output</strong> by itself. It keeps the game's original 48 kHz, 24-bit PCM in a 32-bit container.</p>
         <p>If exclusive playback is still silent, also try <strong>16-bit PCM for WASAPI exclusive mode</strong>. This requires the DAC to accept 48 kHz 16-bit PCM in exclusive mode.</p>
+        <p>If 16-bit stereo works but loud passages distort, try <strong>Stereo PCM16 headroom</strong>. The whole mix will be quieter. Compare the same passage on the same device.</p>
     </details>
 </body>
 
