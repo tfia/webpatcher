@@ -214,28 +214,13 @@ class DynamicPatch {
     }
 
     replaceAll(file, featureOn) {
-        for(let patch of this.patches) {
-            if (Array.isArray(patch.offset)) {
-                for(const offset of patch.offset) {
-                    if (this.target === 'string') {
-                        replace(file, offset,
-                            new TextEncoder().encode(featureOn? patch.on : patch.off));
-                    } else {
-                        patch.on = patch.on.map((byte, idx) => byte === 'XX' ? file[offset + idx] : byte);
-                        patch.off = patch.off.map((byte, idx) => byte === 'XX' ? file[offset + idx] : byte);
-                        replace(file, offset,
-                            featureOn? patch.on : patch.off);
-                    }
-                }
-            } else {
-                if (this.target === 'string') {
-                    replace(file, patch.offset,
-                        new TextEncoder().encode(featureOn? patch.on : patch.off));
-                } else {
-                    patch.on = patch.on.map((byte, idx) => byte === 'XX' ? file[patch.offset + idx] : byte);
-                    patch.off = patch.off.map((byte, idx) => byte === 'XX' ? file[patch.offset + idx] : byte);
-                    replace(file, patch.offset,
-                        featureOn? patch.on : patch.off);
+        for (const patch of this.patches) {
+            const value = featureOn ? patch.on : patch.off;
+            const bytes = this.target === 'string' ? new TextEncoder().encode(value) : value;
+            const offsets = Array.isArray(patch.offset) ? patch.offset : [patch.offset];
+            for (const offset of offsets) {
+                if (offset >= 0) {
+                    replace(file, offset, bytes.map((byte, index) => byte === 'XX' ? file[offset + index] : byte));
                 }
             }
         }
@@ -1033,6 +1018,25 @@ class Patcher {
         this.errorDiv = createElementClass('div', 'error');
         this.patchDiv = createElementClass('div', 'patches');
 
+        this.patchScope = createElementClass('div', 'patch-scope');
+        this.patchScope.hidden = true;
+        this.patchSelect = document.createElement('select');
+        this.patchSelect.id = createID();
+        const allPatches = createElementClass('option', '', 'All patches');
+        allPatches.value = '';
+        this.patchSelect.appendChild(allPatches);
+        const singlePatches = document.createElement('optgroup');
+        singlePatches.label = 'Only one patch';
+        this.mods.forEach((mod, index) => {
+            const option = createElementClass('option', '', mod.name);
+            option.value = String(index);
+            singlePatches.appendChild(option);
+        });
+        this.patchSelect.appendChild(singlePatches);
+        this.patchSelect.addEventListener('change', this.updatePatchScope.bind(this));
+        this.patchScope.appendChild(createLabel('Patch scope', this.patchSelect.id));
+        this.patchScope.appendChild(this.patchSelect);
+
         var saveButton = document.createElement('button');
         saveButton.disabled = true;
         saveButton.textContent = 'Load file First';
@@ -1077,6 +1081,7 @@ class Patcher {
 
         this.container.appendChild(this.successDiv);
         this.container.appendChild(this.errorDiv);
+        this.container.appendChild(this.patchScope);
         this.container.appendChild(this.patchDiv);
         this.container.appendChild(saveButton);
         document.body.appendChild(this.container);
@@ -1097,7 +1102,8 @@ class Patcher {
         }
         // Update save button regardless
         this.saveButton.disabled = false;
-        this.saveButton.textContent = 'Save Patched File';
+        this.patchSelect.value = '';
+        this.updatePatchScope();
         this.errorDiv.innerHTML = this.errorLog;
     }
 
@@ -1131,11 +1137,15 @@ class Patcher {
         if(!this.dllFile || !this.mods || !this.filename)
             return;
 
-        for(var i = 0; i < this.mods.length; i++) {
-            this.mods[i].applyPatch(this.dllFile);
+        // Each download starts from the uploaded bytes, even after an earlier save.
+        const output = this.dllFile.slice();
+        const selection = this.patchSelect.value;
+        const patches = selection === '' ? this.mods : [this.mods[Number(selection)]];
+        for (const patch of patches) {
+            patch.applyPatch(output);
         }
 
-        var blob = new Blob([this.dllFile], {type: "application/octet-stream"});
+        var blob = new Blob([output], {type: "application/octet-stream"});
         var uri = URL.createObjectURL(blob);
         this.downloadURI(uri, this.filename);
         URL.revokeObjectURL(uri);
@@ -1151,6 +1161,16 @@ class Patcher {
         for(var i = 0; i < this.mods.length; i++) {
             this.mods[i].updateUI(this.dllFile);
         }
+        this.patchScope.hidden = this.mods.length < 2;
+    }
+
+    updatePatchScope() {
+        const selection = this.patchSelect.value;
+        const singlePatch = selection !== '';
+        Array.from(this.patchDiv.children).forEach((row, index) => {
+            row.hidden = singlePatch && index !== Number(selection);
+        });
+        this.saveButton.textContent = singlePatch ? 'Save Selected Patch Only' : 'Save Patched File';
     }
 
     validatePatches() {

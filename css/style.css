@@ -237,6 +237,21 @@ li > button {
   margin: 1em auto;
 }
 
+.patch-scope:not([hidden]) {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1em;
+}
+
+.patch-scope select {
+  max-width: 100%;
+  padding: 0.375rem 0.5rem;
+  font: inherit;
+  color-scheme: light dark;
+}
+
 input[type="checkbox"],
 input[type="radio"] {
   vertical-align: middle;
