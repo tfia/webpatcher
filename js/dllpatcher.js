@@ -84,6 +84,7 @@ class StandardPatch {
         this.patches = options.patches;
         this.tooltip = options.tooltip;
         this.danger = options.danger;
+        this.requireMatch = options.requireMatch;
     }
 
     createUI(parent) {
@@ -103,7 +104,11 @@ class StandardPatch {
     }
 
     updateUI(file) {
-        this.checkbox.checked = this.checkPatchBytes(file) === "on";
+        const status = this.checkPatchBytes(file);
+        this.checkbox.checked = status === "on";
+        if (this.requireMatch) {
+            this.checkbox.disabled = status !== "on" && status !== "off";
+        }
     }
 
     validatePatch(file) {
@@ -118,6 +123,12 @@ class StandardPatch {
     }
 
     applyPatch(file) {
+        if (this.requireMatch) {
+            const status = this.checkPatchBytes(file);
+            if (status !== "on" && status !== "off") {
+                return;
+            }
+        }
         this.replaceAll(file, this.checkbox.checked);
     }
 

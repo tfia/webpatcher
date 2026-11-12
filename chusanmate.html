@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <title>CHUNITHM MATE Modder</title>
     <link rel="stylesheet" href="css/style.css">
-    <script type="text/javascript" src="js/dllpatcher.js"></script>
+    <script type="text/javascript" src="js/dllpatcher.js?v=mate-audio-1"></script>
     <script type="text/javascript">
         window.addEventListener("load", function () {
             new PatchContainer([
@@ -22,6 +22,19 @@
                         tooltip: "May cause bass overload",
                         patches: [
                             {offset: 0xE5E71B, off: [0x75, 0x3f], on: [0x90, 0x90]}
+                        ]
+                    },
+                    {
+                        name: "16-bit PCM for WASAPI exclusive mode (experimental)",
+                        tooltip: "Try this if your device rejects 24-bit PCM in a 32-bit container. Keeps 48 kHz and uses the game's 16-bit PCM path. Leave Force shared audio mode unchecked when testing.",
+                        danger: "Requires matching 2.50 audio code. Windows playback testing is pending.",
+                        requireMatch: true,
+                        patches: [
+                            // Two bytes per sample. The game derives block alignment and byte rate from this.
+                            {offset: 0xE5E694, off: [0xC1, 0xE0, 0x02, 0x0F, 0xB7, 0xC0], on: [0xC1, 0xE0, 0x01, 0x0F, 0xB7, 0xC0]},
+                            // WAVEFORMATEXTENSIBLE container and valid bit counts, respectively.
+                            {offset: 0xE5E6AB, off: [0xC7, 0x47, 0x0E, 0x20, 0x00, 0x16, 0x00], on: [0xC7, 0x47, 0x0E, 0x10, 0x00, 0x16, 0x00]},
+                            {offset: 0xE5E6B5, off: [0xB8, 0x18, 0x00, 0x00, 0x00, 0x66, 0x89, 0x86, 0xE2, 0x00, 0x00, 0x00], on: [0xB8, 0x10, 0x00, 0x00, 0x00, 0x66, 0x89, 0x86, 0xE2, 0x00, 0x00, 0x00]},
                         ]
                     },
                     {
@@ -186,6 +199,11 @@
 
 <body>
     <h1>CHUNITHM MATE Modder</h1>
+    <details>
+        <summary>Audio troubleshooting for MATE 2.50</summary>
+        <p>For a silent stereo USB DAC, start with <strong>Force 2 channel audio output</strong> by itself. It keeps the game's original 48 kHz, 24-bit PCM in a 32-bit container.</p>
+        <p>If exclusive playback is still silent, also try <strong>16-bit PCM for WASAPI exclusive mode</strong>. This requires the DAC to accept 48 kHz 16-bit PCM in exclusive mode.</p>
+    </details>
 </body>
 
 </html>
