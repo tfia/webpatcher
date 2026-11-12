@@ -88,6 +88,32 @@
                         ]
                     },
                     {
+                        name: "Rear L/R only for headphones (experimental)",
+                        tooltip: "For six-channel cabinet audio sent to stereo, routes channels 5 and 6 directly to headphone left and right. Overrides Front L/R when both are selected. Use the in-game headphone volume on the song confirmation screen.",
+                        requireMatch: true,
+                        patches: [
+                            {
+                                // Match the frame-count push and PCM conversion call around the routing hook.
+                                offset: 0xF36162,
+                                off: [0x56, 0xFF, 0x75, 0xB8, 0x8D, 0x45, 0xDC, 0xFF, 0x75, 0xB0, 0x50, 0xE8, 0x5D, 0xF8, 0xFF, 0xFF],
+                                on:  [0x56, 0xFF, 0x75, 0xB8, 0xE9, 0x65, 0x00, 0x00, 0x00, 0x90, 0x90, 0xE8, 0x5D, 0xF8, 0xFF, 0xFF],
+                            },
+                            {
+                                offset: 0xF361D0,
+                                off: Array(39).fill(0xCC),
+                                on: [
+                                    // For 6-in/2-out, pass exactly two planes starting at back left.
+                                    0x83, 0x7C, 0x24, 0x04, 0x06, 0x75, 0x14,
+                                    0x83, 0x7C, 0x24, 0x08, 0x02, 0x75, 0x0D,
+                                    0xC7, 0x44, 0x24, 0x04, 0x02, 0x00, 0x00, 0x00,
+                                    0x8D, 0x45, 0xEC, 0xEB, 0x03,
+                                    // Otherwise start at front left, then pass the buffer and call the original converter.
+                                    0x8D, 0x45, 0xDC, 0xFF, 0x75, 0xB0, 0x50, 0xE9, 0x76, 0xFF, 0xFF, 0xFF,
+                                ],
+                            },
+                        ]
+                    },
+                    {
                         name: "Disable song select timer",
                         patches: [
                             {offset: 0x3D7210, off: [0x32, 0xC0], on: [0xB0, 0x01]}
@@ -255,6 +281,7 @@
         <p>If exclusive playback is still silent, also try <strong>16-bit PCM for WASAPI exclusive mode</strong>. This requires the DAC to accept 48 kHz 16-bit PCM in exclusive mode.</p>
         <p>If 16-bit stereo works but loud passages distort, try <strong>Stereo PCM16 headroom</strong>. The whole mix will be quieter. Compare the same passage on the same device.</p>
         <p>If that helps only a little, try <strong>Front L/R only for stereo output</strong> with headroom unchecked. Listen for both distortion and any missing game sounds.</p>
+        <p>For the cabinet headphone mix, choose <strong>Rear L/R only for headphones</strong> and test in a song. The title screen may be quiet because this uses the game's separate headphone feed.</p>
     </details>
 </body>
 
