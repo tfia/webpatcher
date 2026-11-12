@@ -1,32 +1,25 @@
-# [RE: TWO-TORIAL](https://re-two-torial.xyz)'s Web Patcher
+# Web Patcher (self-hosted fork)
 
-### URL: [https://patcher.re-two-torial.xyz/](https://patcher.re-two-torial.xyz/)
+Self-hosted fork of [asterisk727/webpatcher](https://github.com/asterisk727/webpatcher), based on the community-maintained RE: TWO-TORIAL Web Patcher.
 
-## About
+**Site:** https://tfia.github.io/webpatcher/  
+**CHUNITHM MATE (2.50):** https://tfia.github.io/webpatcher/chusanmate.html
 
-This repo contains web patches for games incompatible with [spice2x](https://spice2x.github.io/). See our [spice2x patcher](https://github.com/asterisk727/sp2xpatcher/) for those.   
-We'll be keeping the **repo public** and **url alive** for as long as possible, **feel free to [contibute](#Contributing)** for the community through pull requests!
+## GitHub Pages setup
+
+This repository is a static HTML/CSS/JavaScript website. No build step is needed.
+
+1. Open **Settings → Pages** in this repository.
+2. Under **Build and deployment**, choose **Deploy from a branch**.
+3. Select **main** and **/(root)**, then save.
+4. Allow GitHub Pages to publish the site at the URL above.
+
+The upstream custom-domain `CNAME` file has been removed so this fork will use the default `github.io` project URL. If configuring a custom domain later, add your own domain through the Pages settings.
 
 ## Usage
 
-See our guide on [web patching](https://re-two-torial.xyz/extras/patchweb/) and use the url provided above.
+Select a game/version from the home page, choose its corresponding executable or data file, apply patches, and save the modified file. **Back up the original first.** Patch offsets and expected bytes are version-specific. The site includes CHUNITHM MATE 2.50; it does not imply that patches work on other builds.
 
-## Contributing
+## Upstream & attribution
 
-### A new game
-
-- Add the new game html, it is easiest to copy an existing game and modify it.
-- Modify the `<title>` tag and the `<h1>` tag to the name of the new game.
-- Modify the patcher for the new DLL names/patches.
-- Keep indentation consistent. We will have to fix your PR if it contains poor formatting, which will delay the merging process.
-- Modify `index.html` to add the new game. Sorting: alphabetical by game series, then in release order per game.
-- Add a game image. 128x128px PNG files, please. Any blank space should be either white or transparent.
-- Create a pull request.
-
-### Patches for an existing game
-
-- Open the game's html.
-- If necessary: add a new PatchContainer.
-- If necessary: add a new Patcher.
-- Add your patches following the existing format.
-- Create a pull request.
+Source and original maintenance: [asterisk727/webpatcher](https://github.com/asterisk727/webpatcher). Refer to the original repository for contribution instructions and license. This fork is independently hosted; upstream links, branding, and resources in the pages remain credited to their creators.
